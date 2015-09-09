@@ -1,0 +1,9 @@
+{
+  "name": "nodejs_buildpack",
+  "version": "0.0.1",
+  "author": "Demo",
+  "engines": {
+    "node": "0.12.2",
+    "npm": "2.7.4"
+  }
+}

@@ -1,0 +1,1 @@
+<html><head><title>php_buildpack</title></head><body>OK!</body></html>
