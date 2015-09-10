@@ -1,15 +1,25 @@
 # fly -t concourse1 configure -c pipeline.yml --vars-from credentials.yml test-buildpacks
 ---
 groups:
-  - name: stage
+  - name: nodejs
     jobs:
       - test-nodejs-buildpack-stage
-      - test-php-buildpack-stage
-
-  - name: prod
-    jobs:
       - test-nodejs-buildpack-prod
+
+  - name: php
+    jobs:
+      - test-php-buildpack-stage
       - test-php-buildpack-prod
+
+  - name: ruby
+    jobs:
+      - test-ruby-buildpack-stage
+      - test-ruby-buildpack-prod
+
+  - name: staticfile
+    jobs:
+      - test-staticfile-buildpack-stage
+      - test-staticfile-buildpack-prod
 
   - name: ci-image
     jobs:
@@ -58,30 +68,6 @@ jobs:
         resource: cf-stage
         params: { manifest: make-manifest/buildpacks/nodejs/manifest-stage.yml }
 
-
-  - name: test-php-buildpack-stage
-    plan:
-      - get: time-cron
-        trigger: true
-
-      - get: git-buildpacks-test
-        trigger: false
-
-      - task: make-manifest
-        config:
-          platform: linux
-          image: {{docker-hub-task-image}}
-          inputs:
-            - {name: git-buildpacks-test, path: .}
-          run:
-            path: ./make-manifest.sh
-            args: [ php, stage ]
-
-      - put: cf-stage-php
-        resource: cf-stage
-        params: { manifest: make-manifest/buildpacks/php/manifest-stage.yml }
-
-
   - name: test-nodejs-buildpack-prod
     plan:
       - get: time-cron
@@ -105,6 +91,28 @@ jobs:
         params: { manifest: make-manifest/buildpacks/nodejs/manifest-prod.yml }
 
 
+  - name: test-php-buildpack-stage
+    plan:
+      - get: time-cron
+        trigger: true
+
+      - get: git-buildpacks-test
+        trigger: false
+
+      - task: make-manifest
+        config:
+          platform: linux
+          image: {{docker-hub-task-image}}
+          inputs:
+            - {name: git-buildpacks-test, path: .}
+          run:
+            path: ./make-manifest.sh
+            args: [ php, stage ]
+
+      - put: cf-stage-php
+        resource: cf-stage
+        params: { manifest: make-manifest/buildpacks/php/manifest-stage.yml }
+
   - name: test-php-buildpack-prod
     plan:
       - get: time-cron
@@ -126,6 +134,97 @@ jobs:
       - put: cf-prod-php
         resource: cf-prod
         params: { manifest: make-manifest/buildpacks/php/manifest-prod.yml }
+
+  - name: test-ruby-buildpack-stage
+    plan:
+      - get: time-cron
+        trigger: true
+
+      - get: git-buildpacks-test
+        trigger: false
+
+      - task: make-manifest
+        config:
+          platform: linux
+          image: {{docker-hub-task-image}}
+          inputs:
+            - {name: git-buildpacks-test, path: .}
+          run:
+            path: ./make-manifest.sh
+            args: [ ruby, stage ]
+
+      - put: cf-stage-ruby
+        resource: cf-stage
+        params: { manifest: make-manifest/buildpacks/ruby/manifest-stage.yml }
+
+  - name: test-ruby-buildpack-prod
+    plan:
+      - get: time-cron
+        trigger: true
+
+      - get: git-buildpacks-test
+        trigger: false
+
+      - task: make-manifest
+        config:
+          platform: linux
+          image: {{docker-hub-task-image}}
+          inputs:
+            - {name: git-buildpacks-test, path: .}
+          run:
+            path: ./make-manifest.sh
+            args: [ ruby, prod ]
+
+      - put: cf-prod-ruby
+        resource: cf-prod
+        params: { manifest: make-manifest/buildpacks/ruby/manifest-prod.yml }
+
+
+  - name: test-staticfile-buildpack-stage
+    plan:
+      - get: time-cron
+        trigger: true
+
+      - get: git-buildpacks-test
+        trigger: false
+
+      - task: make-manifest
+        config:
+          platform: linux
+          image: {{docker-hub-task-image}}
+          inputs:
+            - {name: git-buildpacks-test, path: .}
+          run:
+            path: ./make-manifest.sh
+            args: [ staticfile, stage ]
+
+      - put: cf-stage-staticfile
+        resource: cf-stage
+        params: { manifest: make-manifest/buildpacks/staticfile/manifest-stage.yml }
+
+  - name: test-staticfile-buildpack-prod
+    plan:
+      - get: time-cron
+        trigger: true
+
+      - get: git-buildpacks-test
+        trigger: false
+
+      - task: make-manifest
+        config:
+          platform: linux
+          image: {{docker-hub-task-image}}
+          inputs:
+            - {name: git-buildpacks-test, path: .}
+          run:
+            path: ./make-manifest.sh
+            args: [ staticfile, prod ]
+
+      - put: cf-prod-staticfile
+        resource: cf-prod
+        params: { manifest: make-manifest/buildpacks/staticfile/manifest-prod.yml }
+
+
 
 resources:
   - name: docker-image

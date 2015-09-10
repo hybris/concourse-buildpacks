@@ -19,3 +19,4 @@ blobs/*
 tmp
 my*.yml
 *credentials.yml
+*manifest-*.yml

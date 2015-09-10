@@ -5,21 +5,19 @@ function make_manifest(){
   local buildpack=$1
   local environment=$2
   
-  local memory="128M"
+  local memory="64M" # Try to keep the smallest footprint
   local cmd="null"
 
   case "$buildpack" in
+    ruby)
+        cmd="bundle exec ruby index.rb"
+        ;;
     nodejs)
         cmd="node index.js"
         ;;
     java)
         memory="256M"
         ;;
-     
-    # *)
-    #   echo $"Usage: $0 {start|stop|restart|condrestart|status}"
-    #   exit 1
-   
   esac
 
 cat > buildpacks/${buildpack}/manifest-${environment}.yml <<EOF
@@ -48,8 +46,6 @@ function main(){
 
 default_buildpacks="$(ls buildpacks)"
 default_environments="stage prod"
-
-
 
 buildpacks=${1:-$default_buildpacks}
 environments=${2:-$default_environments}
