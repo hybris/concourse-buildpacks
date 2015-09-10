@@ -3,11 +3,13 @@
 groups:
   - name: stage
     jobs:
-      - test-buildpack-stage
+      - test-nodejs-buildpack-stage
+      - test-php-buildpack-stage
 
-  # - name: prod
-  #   jobs:
-  #     - test-buildpack-prod
+  - name: prod
+    jobs:
+      - test-nodejs-buildpack-prod
+      - test-php-buildpack-prod
 
   - name: ci-image
     jobs:
@@ -34,7 +36,7 @@ jobs:
       params:
         build: combined/ci/ci_image
 
-  - name: test-buildpack-stage
+  - name: test-nodejs-buildpack-stage
     plan:
       - get: time-cron
         trigger: true
@@ -49,25 +51,81 @@ jobs:
           inputs:
             - {name: git-buildpacks-test, path: .}
           run:
-            path: make-manifest.sh
-            # args: [ stage ]
+            path: ./make-manifest.sh
+            args: [ nodejs, stage ]
 
-      # - try:
       - put: cf-stage-nodejs
         resource: cf-stage
-        params: { manifest: make-manifest/nodejs/manifest-stage.yml }
-        on_failure:
-          put: vo-alert
-          params:
-            type: CRITICAL
-            entity: "concourse/jobs/test-buildpack-stage/cf-stage-nodejs"
-            message: "build failed"
+        params: { manifest: make-manifest/buildpacks/nodejs/manifest-stage.yml }
 
-      # - try:
-      #   - put: cf-stage-php
-      #     resourse: cf-stage
-      #     params: { manifest: make-manifest/php/manifest.yml }
-      #     ...
+
+  - name: test-php-buildpack-stage
+    plan:
+      - get: time-cron
+        trigger: true
+
+      - get: git-buildpacks-test
+        trigger: false
+
+      - task: make-manifest
+        config:
+          platform: linux
+          image: {{docker-hub-task-image}}
+          inputs:
+            - {name: git-buildpacks-test, path: .}
+          run:
+            path: ./make-manifest.sh
+            args: [ php, stage ]
+
+      - put: cf-stage-php
+        resource: cf-stage
+        params: { manifest: make-manifest/buildpacks/php/manifest-stage.yml }
+
+
+  - name: test-nodejs-buildpack-prod
+    plan:
+      - get: time-cron
+        trigger: true
+
+      - get: git-buildpacks-test
+        trigger: false
+
+      - task: make-manifest
+        config:
+          platform: linux
+          image: {{docker-hub-task-image}}
+          inputs:
+            - {name: git-buildpacks-test, path: .}
+          run:
+            path: ./make-manifest.sh
+            args: [ nodejs, prod ]
+
+      - put: cf-prod-nodejs
+        resource: cf-prod
+        params: { manifest: make-manifest/buildpacks/nodejs/manifest-prod.yml }
+
+
+  - name: test-php-buildpack-prod
+    plan:
+      - get: time-cron
+        trigger: true
+
+      - get: git-buildpacks-test
+        trigger: false
+
+      - task: make-manifest
+        config:
+          platform: linux
+          image: {{docker-hub-task-image}}
+          inputs:
+            - {name: git-buildpacks-test, path: .}
+          run:
+            path: ./make-manifest.sh
+            args: [ php, prod ]
+
+      - put: cf-prod-php
+        resource: cf-prod
+        params: { manifest: make-manifest/buildpacks/php/manifest-prod.yml }
 
 resources:
   - name: docker-image
