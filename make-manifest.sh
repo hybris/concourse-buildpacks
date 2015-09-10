@@ -37,12 +37,21 @@ EOF
 }
 
 function main(){
-  for p in $(ls buildpacks)
+  for bp in ${1}
   do
-    make_manifest "$p" "stage"
-    make_manifest "$p" "prod"
+    for ev in ${2}
+    do
+      make_manifest "$bp" "$ev"
+    done
   done
 }
 
+default_buildpacks="$(ls buildpacks)"
+default_environments="stage prod"
 
-main
+
+
+buildpacks=${1:-$default_buildpacks}
+environments=${2:-$default_environments}
+
+main "${buildpacks}" "${environments}"
