@@ -1,0 +1,35 @@
+jobs:
+- (( merge ))
+- name: test-ruby-buildpack-prod
+  plan:
+    - get: time-cron
+      trigger: true
+
+    - get: git-buildpacks-test
+      trigger: false
+
+    - task: make-manifest
+      config:
+        platform: linux
+        image: {{docker-hub-task-image}}
+        inputs:
+          - {name: git-buildpacks-test, path: .}
+        run:
+          path: ./make-manifest.sh
+          args: [ ruby, prod ]
+
+    - put: cf-prod-ruby
+      resource: cf-prod
+      params: { manifest: make-manifest/buildpacks/ruby/manifest-prod.yml }
+      on_success:
+        put: vo-alert
+        params:
+          type: OK
+          entity: "concourse/jobs/test-ruby-buildpack-prod/cf-prod-ruby"
+          message: {{victorops-ruby-success-prod}}
+      on_failure:
+        put: vo-alert
+        params:
+          type: CRITICAL
+          entity: "concourse/jobs/test-ruby-buildpack-prod/cf-prod-ruby"
+          message: {{victorops-ruby-failure-prod}}

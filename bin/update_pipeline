@@ -1,0 +1,30 @@
+#!/bin/bash
+
+TARGET=${target:-"concourse1"}
+PIPELINE_NAME=${pipeline:-"test-buildpacks"}
+CREDENTIALS=${CREDENTIALS:-"credentials.yml"}
+
+if ! [ -x "$(command -v spruce)" ]; then
+  echo 'spruce is not installed. Please download at https://github.com/geofffranks/spruce/releases' >&2
+fi
+
+if ! [ -x "$(command -v fly)" ]; then
+  echo 'fly is not installed.' >&2
+fi
+
+set -eu
+
+PIPELINE=$(mktemp /tmp/pipeline.XXXXX)
+
+spruce --concourse merge \
+  ci/pipeline/stub.yml \
+  ci/pipeline/groups.yml \
+  ci/pipeline/resources.yml \
+  `find ci/pipeline/jobs -type f` \
+  > ${PIPELINE}
+
+fly -t ${TARGET} c -c ${PIPELINE} --vars-from ${CREDENTIALS} ${PIPELINE_NAME}
+
+# cat $PIPELINE
+
+rm $PIPELINE

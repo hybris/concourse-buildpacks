@@ -1,0 +1,24 @@
+groups:
+  - name: nodejs
+    jobs:
+      - test-nodejs-buildpack-stage
+      - test-nodejs-buildpack-prod
+
+  - name: php
+    jobs:
+      - test-php-buildpack-stage
+      - test-php-buildpack-prod
+
+  - name: ruby
+    jobs:
+      - test-ruby-buildpack-stage
+      - test-ruby-buildpack-prod
+
+  - name: staticfile
+    jobs:
+      - test-staticfile-buildpack-stage
+      - test-staticfile-buildpack-prod
+
+  - name: ci-image
+    jobs:
+      - build-task-image      

@@ -1,0 +1,22 @@
+jobs:
+- (( merge ))
+- name: build-task-image
+  public: true
+  serial: true
+  plan:
+  - get: pipeline
+    resource: git-pipeline-docker-image
+    trigger: true
+  - get: cf-cli
+    trigger: true
+  - task: combined
+    config:
+      platform: linux
+      image: docker:///busybox
+      inputs:
+      - {name: pipeline, path: .}
+      - {name: cf-cli, path: ci/ci_image/cf-cli}
+      run: {path: echo}
+  - put: docker-image
+    params:
+      build: combined/ci/ci_image
